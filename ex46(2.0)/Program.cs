@@ -26,7 +26,7 @@ namespace ex46
             {
                 new Warlock("Чернокнижник", 1000, 100),
                 new Rogue("Разбойник", 1000, 100),
-                new Warrior("Воин", 1000, 100),
+                new Warrior("Воин", 1000, 100, random.Next(10, 25)),
                 new Paladin("Паладин", 1000, 100),
                 new Mage("Маг", 1000, 100),
                 new Hunter("Охотник", 1000, 100),
@@ -78,13 +78,11 @@ namespace ex46
                     secondFighter.ShowCurrentHealth();
                     secondFighter.UseAbility();                    
                     DrawBorder();
-
                     
                     Console.WriteLine("\nНажмите любую клавишу чтобы сделать удар...");
                     Console.ReadKey();                
                     firstFighter.TakeDamage(secondFighter.Damage);
                     secondFighter.TakeDamage(firstFighter.Damage);
-
                 }
 
                     DetermineWinner(firstFighter, secondFighter);
@@ -199,7 +197,7 @@ namespace ex46
         public void StealLife()
         {
             ConsoleColor defaultColor = Console.ForegroundColor;
-            _lifesteal = _random.Next(10, 30);
+            _lifesteal = _random.Next(10, 40);
             CurrentHealth += _lifesteal;
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
             Console.WriteLine($"Кража здоровья");
@@ -236,8 +234,8 @@ namespace ex46
 
             if (chance == 0)
             {
-                ConsoleColor defaultColor = Console.ForegroundColor;
                 Damage = critDamage;
+                ConsoleColor defaultColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Критический урон!");
                 Console.ForegroundColor = defaultColor;
@@ -260,14 +258,18 @@ namespace ex46
     {
         private int _armor;
 
-        public Warrior(string name, int health, int damage) : base(name, health, damage)
+        public Warrior(string name, int health, int damage, int armor) : base(name, health, damage)
         {
-
+            _armor = armor;
         }
 
         public void BlockDamage()
         {
-
+            ConsoleColor defaultColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine($"Каменная кожа");
+            CurrentHealth += _armor;
+            Console.ForegroundColor = defaultColor;
         }
 
         public override void ShowStats()
@@ -295,7 +297,6 @@ namespace ex46
             {
 
             }
-
         }
 
         public override void ShowStats()
