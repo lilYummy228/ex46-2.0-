@@ -53,47 +53,54 @@ namespace ex46
             Fighter firstFighter = ChooseFirstFighter();
             Fighter secondFighter = ChooseSecondFighter();
 
-            if (firstFighter != secondFighter)
+            if (firstFighter != null && secondFighter != null)
             {
-                Console.Clear();
-                firstFighter.ShowCurrentHealth();
-                Console.WriteLine("\nПротив\n");
-                secondFighter.ShowCurrentHealth();
-                Console.WriteLine("\nНажмите любую клавишу чтобы начать битву...");
-                Console.ReadKey();
-
-                while (firstFighter.CurrentHealth > 0 && secondFighter.CurrentHealth > 0)
+                if (firstFighter != secondFighter)
                 {
                     Console.Clear();
-
-                    DrawBorder();
                     firstFighter.ShowCurrentHealth();
-                    firstFighter.UseAbility(secondFighter);
-                    DrawBorder();
-
-                    Console.WriteLine();
-
-                    DrawBorder();
+                    Console.WriteLine("\nПротив\n");
                     secondFighter.ShowCurrentHealth();
-                    secondFighter.UseAbility(firstFighter);
-                    DrawBorder();
-
-                    Console.WriteLine("\nНажмите любую клавишу чтобы сделать удар...");
+                    Console.WriteLine("\nНажмите любую клавишу чтобы начать битву...");
                     Console.ReadKey();
-                    firstFighter.TakeDamage(secondFighter.Damage);
-                    secondFighter.TakeDamage(firstFighter.Damage);
+
+                    while (firstFighter.CurrentHealth > 0 && secondFighter.CurrentHealth > 0)
+                    {
+                        Console.Clear();
+
+                        DrawBorder();
+                        firstFighter.ShowCurrentHealth();
+                        firstFighter.UseAbility(secondFighter);
+                        DrawBorder();
+
+                        Console.WriteLine();
+
+                        DrawBorder();
+                        secondFighter.ShowCurrentHealth();
+                        secondFighter.UseAbility(firstFighter);
+                        DrawBorder();
+
+                        Console.WriteLine("\nНажмите любую клавишу чтобы сделать удар...");
+                        Console.ReadKey();
+                        firstFighter.TakeDamage(secondFighter.Damage);
+                        secondFighter.TakeDamage(firstFighter.Damage);
+                    }
+
+                    DetermineWinner(firstFighter, secondFighter);
+                }
+                else
+                {
+                    Console.WriteLine("Двух одиннаковых бойцов выбрать нельзя");
                 }
 
-                DetermineWinner(firstFighter, secondFighter);
+                Console.CursorVisible = true;
+                Console.ReadKey();
+                Console.Clear();
             }
             else
             {
-                Console.WriteLine("Двух одиннаковых бойцов выбрать нельзя");
+                Console.WriteLine("Неккоректный ввод...");
             }
-
-            Console.CursorVisible = true;
-            Console.ReadKey();
-            Console.Clear();
         }
 
         private void DrawBorder()
@@ -130,8 +137,10 @@ namespace ex46
                 Fighter firstFighter = _fighters[fighterIndex - 1];
                 return firstFighter;
             }
-
-            return null;
+            else
+            {
+                return null;
+            }
         }
 
         private Fighter ChooseSecondFighter()
@@ -143,10 +152,11 @@ namespace ex46
                 Fighter secondFighter = _fighters[fighterIndex - 1];
                 return secondFighter;
             }
-
-            return null;
+            else
+            {
+                return null;
+            }
         }
-
     }
 
     class Fighter
