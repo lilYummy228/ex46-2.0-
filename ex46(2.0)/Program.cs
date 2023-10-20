@@ -31,7 +31,7 @@ namespace ex46
                 new Mage("Маг", 1000, 100),
                 new Hunter("Охотник", 1000, 100),
                 new Shaman("Шаман", 1000, 100),
-                new Druid("Друид", 1000, 100),
+                new Druid("Друид", 1000, 100, random.Next(0,4)),
                 new Priest("Жрец", 1000, 100)
             };
         }
@@ -471,32 +471,113 @@ namespace ex46
 
     class Druid : Fighter
     {
-        public Druid(string name, int health, int damage) : base(name, health, damage) { }
+        private int _beastForm;
+        private int _initialDamage;
+        private int _initialHealth;
+        private bool _isTurningInto;
 
-        public void TurnIntoBeast()
+        public Druid(string name, int health, int damage, int beastForm) : base(name, health, damage)
         {
+            _beastForm = beastForm;
+            _initialDamage = Damage;
+            _initialHealth = MaxHealth;
+        }
 
+        public void TurnIntoBeast(Fighter enemyFighter)
+        {
+            ConsoleColor defaultColor = Console.ForegroundColor;
+
+            if (_isTurningInto == false && CurrentHealth <= MaxHealth / 10 * 7)
+            {
+                if (_beastForm == 0)
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.WriteLine("Форма медведя");
+                    CurrentHealth += 350;
+                    _isTurningInto = true;
+                }
+                else if (_beastForm == 1)
+                {
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.WriteLine("Форма совы");
+                    CurrentHealth -= 200;
+                    Damage += enemyFighter.Damage;
+                    _isTurningInto = true;
+                }
+                else if (_beastForm == 2)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Форма лисы");
+                    Damage -= 50;
+                    CurrentHealth += enemyFighter.CurrentHealth;
+                    _isTurningInto = true;
+                }
+                else if (_beastForm == 3)
+                {
+                    Damage = _initialDamage;
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.WriteLine("Форма волка");
+                    Damage += 20;
+
+                    if (CurrentHealth <= MaxHealth / 2)
+                    {
+                        Damage += 25;
+                    }
+                    else if (CurrentHealth <= MaxHealth / 4)
+                    {
+                        Damage += 30;
+                    }
+                }
+            }
+
+            Console.ForegroundColor = defaultColor;
         }
 
         public override void ShowStats()
         {
             base.ShowStats();
-            Console.WriteLine($"Связь {Name}а с лесом помогает ему оставаться невредимым даже на поле сражений\n");
+            Console.WriteLine($"Связь {Name}а с лесом помогает ему принимать различные зверинные формы, что позволяет ему защищать лес от врагов\n");
         }
 
         public override void UseAbility(Fighter enemyFighter)
         {
-            TurnIntoBeast();
+            TurnIntoBeast(enemyFighter);
         }
     }
 
     class Priest : Fighter
     {
-        public Priest(string name, int health, int damage) : base(name, health, damage) { }
+        private bool _isRised;
+
+        public Priest(string name, int health, int damage) : base(name, health, damage)
+        {
+            _isRised = false;
+        }
 
         public void RiseAgain()
         {
+            if (_isRised == false)
+            {
+                if (CurrentHealth <= 100)
+                {
+                    ConsoleColor defaultColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    CurrentHealth += 500;
+                    Console.WriteLine("Возрождение");
+                    _isRised = true;
+                    Console.ForegroundColor = defaultColor;
+                }
+            }
 
+            if (_isRised)
+            {
+                Damage -= 20;
+
+                if (Damage <= 20)
+                {
+                    Damage = 20;
+                }
+            }
         }
 
         public override void ShowStats()
