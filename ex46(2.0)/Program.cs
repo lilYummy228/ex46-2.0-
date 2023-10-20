@@ -69,23 +69,23 @@ namespace ex46
 
                     DrawBorder();
                     firstFighter.ShowCurrentHealth();
-                    firstFighter.UseAbility();                    
+                    firstFighter.UseAbility(secondFighter);
                     DrawBorder();
 
                     Console.WriteLine();
 
                     DrawBorder();
                     secondFighter.ShowCurrentHealth();
-                    secondFighter.UseAbility();                    
+                    secondFighter.UseAbility(firstFighter);
                     DrawBorder();
-                    
+
                     Console.WriteLine("\nНажмите любую клавишу чтобы сделать удар...");
-                    Console.ReadKey();                
+                    Console.ReadKey();
                     firstFighter.TakeDamage(secondFighter.Damage);
                     secondFighter.TakeDamage(firstFighter.Damage);
                 }
 
-                    DetermineWinner(firstFighter, secondFighter);
+                DetermineWinner(firstFighter, secondFighter);
             }
             else
             {
@@ -147,6 +147,7 @@ namespace ex46
 
             return null;
         }
+
     }
 
     class Fighter
@@ -176,10 +177,10 @@ namespace ex46
             Console.WriteLine($"{Name}");
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"Здоровье: {CurrentHealth}");
-            Console.ForegroundColor= defaultColor;
+            Console.ForegroundColor = defaultColor;
         }
 
-        public virtual void UseAbility() { }
+        public virtual void UseAbility(Fighter enemyFighter) { }
 
         public void TakeDamage(int damage)
         {
@@ -197,7 +198,7 @@ namespace ex46
         public void StealLife()
         {
             ConsoleColor defaultColor = Console.ForegroundColor;
-            _lifesteal = _random.Next(10, 40);
+            _lifesteal = _random.Next(10, 41);
             CurrentHealth += _lifesteal;
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
             Console.WriteLine($"Кража здоровья");
@@ -210,7 +211,7 @@ namespace ex46
             Console.WriteLine($"{Name} имеет способность высасывать жизненную энергию из врага при нанесении урона\n");
         }
 
-        public override void UseAbility()
+        public override void UseAbility(Fighter enemyFighter)
         {
             StealLife();
         }
@@ -229,14 +230,14 @@ namespace ex46
         {
             Random random = new Random();
             Damage = _initialDamage;
-            int chance = random.Next(5); //20%
-            int critDamage = Damage * 3;
+            int chance = random.Next(0, 4); //25%
+            int critDamage = Damage * 2;
 
             if (chance == 0)
             {
                 Damage = critDamage;
                 ConsoleColor defaultColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Red;
+                Console.ForegroundColor = ConsoleColor.DarkRed;
                 Console.WriteLine("Критический урон!");
                 Console.ForegroundColor = defaultColor;
             }
@@ -248,7 +249,7 @@ namespace ex46
             Console.WriteLine($"{Name} часто опережает своего противника, получая преимущество в бою с ними в виде шанса на нанесение двойного урона при атаке\n");
         }
 
-        public override void UseAbility()
+        public override void UseAbility(Fighter enemyFighter)
         {
             DealCriticalDamage();
         }
@@ -275,10 +276,10 @@ namespace ex46
         public override void ShowStats()
         {
             base.ShowStats();
-            Console.WriteLine($"Благодаря своим тяжелым доспехам и военному мастерству, {Name} меньше получает урона от противников\n");
+            Console.WriteLine($"Благодаря своей толстой коже, {Name} меньше получает урона от противников\n");
         }
 
-        public override void UseAbility()
+        public override void UseAbility(Fighter enemyFighter)
         {
             BlockDamage();
         }
@@ -288,53 +289,65 @@ namespace ex46
     {
         public Paladin(string name, int health, int damage) : base(name, health, damage) { }
 
-        public void EvadeDamage()
+        public void HealYourself()
         {
             Random random = new Random();
-            int chance = random.Next(20); //5%
+            int chance = random.Next(0, 4);
 
             if (chance == 0)
             {
-
+                ConsoleColor defaultColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("Священная милость");
+                Console.ForegroundColor = defaultColor;
+                CurrentHealth += 50;
             }
         }
 
         public override void ShowStats()
         {
             base.ShowStats();
-            Console.WriteLine($"{Name} имеет шанс полностью заблокировать атаку противника благодаря божественному щиту\n");
+            Console.WriteLine($"{Name} освящает себя, получая благословение и исцеляя себя\n");
         }
 
-        public override void UseAbility()
+        public override void UseAbility(Fighter enemyFighter)
         {
-            EvadeDamage();
+            HealYourself();
         }
     }
 
     class Mage : Fighter
     {
+        private int _hitCount;
+        private int _initialDamage;
+
         public Mage(string name, int health, int damage) : base(name, health, damage)
         {
-            HitCount = 0;
+            _hitCount = 0;
+            _initialDamage = Damage;
         }
-
-        public int HitCount { get; private set; }
 
         public void BurnEnemy()
         {
-            HitCount++;
+            Damage = _initialDamage;
+            _hitCount++;
 
-            for (int i = 0; i < HitCount; i++)
-                Damage += Damage / 10;
+            for (int i = 0; i < _hitCount; i++)
+                Damage += 7;
+
+            ConsoleColor defaultColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Console.WriteLine($"Мороз по коже");
+            Console.ForegroundColor = defaultColor;
         }
 
         public override void ShowStats()
         {
             base.ShowStats();
-            Console.WriteLine($"{Name} способен держать в страхе своих врагов, не желающих быть сожженными дотла\n");
+            Console.WriteLine($"{Name} ловко обращается с магией льда, что может одним лишь холодным взглядом остудить пыл своих врагов\n");
         }
 
-        public override void UseAbility()
+        public override void UseAbility(Fighter enemyFighter)
         {
             BurnEnemy();
         }
@@ -342,43 +355,106 @@ namespace ex46
 
     class Hunter : Fighter
     {
-        public Hunter(string name, int health, int damage) : base(name, health, damage) { }
+        private int _initialDamage;
 
-        public void HitToWounds()
+        public Hunter(string name, int health, int damage) : base(name, health, damage)
         {
+            _initialDamage = Damage;
+        }
 
+        public void SummonWolf()
+        {
+            Damage = _initialDamage;
+
+            if (CurrentHealth <= MaxHealth / 2)
+            {
+
+                ConsoleColor defaultColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.WriteLine("Призыв волка");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Wolf wolf = new Wolf("Волк", 100, 50);
+
+
+                Console.WriteLine();
+                wolf.ShowStats();
+                Damage += wolf.Damage;
+
+                Console.ForegroundColor = defaultColor;
+            }
         }
 
         public override void ShowStats()
         {
             base.ShowStats();
-            Console.WriteLine($"У {Name}а меткий не только выстрел, но и взор, благодаря которому он может находить слабые места противников и пользоваться этим\n");
+            Console.WriteLine($"У {Name}а есть верный компаньон, горный волк, готовый растерзать противников своего хозяина \n");
         }
 
-        public override void UseAbility()
+        public override void UseAbility(Fighter enemyFighter)
         {
-            HitToWounds();
+            SummonWolf();
+        }
+
+        class Wolf : Fighter
+        {
+            public Wolf(string name, int health, int damage) : base(name, health, damage) { }
+
+            public override void ShowStats()
+            {
+                ConsoleColor defaultColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine($"{Name}");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"Здоровье: {CurrentHealth}");
+                Console.ForegroundColor = defaultColor;
+            }
         }
     }
 
     class Shaman : Fighter
     {
-        public Shaman(string name, int health, int damage) : base(name, health, damage) { }
+        private int _initialDamage;
 
-        public void GetSpontaneousEffect()
+        public Shaman(string name, int health, int damage) : base(name, health, damage)
         {
+            _initialDamage = Damage;
+        }
+
+        public void GetSpontaneousEffect(Fighter enemyFighter)
+        {
+            Damage = _initialDamage;
             Random random = new Random();
-            int chance = random.Next(4); //25%
-            int randomValue = random.Next(MaxHealth / 20, MaxHealth / 10);
+            int chance = random.Next(0, 4); //25%
+            ConsoleColor defaultColor = Console.ForegroundColor;
 
-            if (chance == 0) { }
+            if (chance == 0)
+            {
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine("Попутный ветер");
+                CurrentHealth += enemyFighter.Damage;
+            }
+            else if (chance == 1)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Жар солнца");
+                Damage += random.Next(50, 101);
+                CurrentHealth -= Damage;
+            }
+            else if (chance == 2)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkCyan;
+                Console.WriteLine("Целительный дождь");
+                CurrentHealth += random.Next(50, 76);
+            }
+            else if (chance == 3)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.WriteLine("Защита флоры");
+                Damage -= random.Next(25, 101);
+                CurrentHealth += random.Next(0, 101);
+            }
 
-            else if (chance == 1) { }
-
-            else if (chance == 2) { }
-
-            else if (chance == 3) { }
-
+            Console.ForegroundColor = defaultColor;
         }
 
         public override void ShowStats()
@@ -387,9 +463,9 @@ namespace ex46
             Console.WriteLine($"Силы стихий часто несут за собой такие же стихийные последствия для {Name}а, чем он и пользуется \n");
         }
 
-        public override void UseAbility()
+        public override void UseAbility(Fighter enemyFighter)
         {
-            GetSpontaneousEffect();
+            GetSpontaneousEffect(enemyFighter);
         }
     }
 
@@ -397,7 +473,7 @@ namespace ex46
     {
         public Druid(string name, int health, int damage) : base(name, health, damage) { }
 
-        public void HealYourself()
+        public void TurnIntoBeast()
         {
 
         }
@@ -408,9 +484,9 @@ namespace ex46
             Console.WriteLine($"Связь {Name}а с лесом помогает ему оставаться невредимым даже на поле сражений\n");
         }
 
-        public override void UseAbility()
+        public override void UseAbility(Fighter enemyFighter)
         {
-            HealYourself();
+            TurnIntoBeast();
         }
     }
 
@@ -429,7 +505,7 @@ namespace ex46
             Console.WriteLine($"Благородный {Name}, примкнувший к силам света, никогда не оставит ни себя, ни своих союзников умирать на поле боя\n");
         }
 
-        public override void UseAbility()
+        public override void UseAbility(Fighter enemyFighter)
         {
             RiseAgain();
         }
