@@ -26,7 +26,7 @@ namespace ex46
             {
                 new Warlock("Чернокнижник", 1000, 100),
                 new Rogue("Разбойник", 1000, 100),
-                new Warrior("Воин", 1000, 100, random.Next(0, 100)),
+                new Warrior("Воин", 1000, 100),
                 new Paladin("Паладин", 1000, 100),
                 new Mage("Маг", 1000, 100),
                 new Hunter("Охотник", 1000, 100),
@@ -50,6 +50,7 @@ namespace ex46
 
         public void Fight()
         {
+            Console.CursorVisible = false;
             Fighter firstFighter = ChooseFirstFighter();
             Fighter secondFighter = ChooseSecondFighter();
 
@@ -66,36 +67,61 @@ namespace ex46
                 {
                     Console.Clear();
 
+                    DrawBorder();
                     firstFighter.ShowCurrentHealth();
-                    firstFighter.UseAbility();
-                    firstFighter.TakeDamage(secondFighter.Damage);
-                    firstFighter.ShowRecievedDamage(secondFighter.Damage);
+                    firstFighter.UseAbility();                    
+                    DrawBorder();
 
-                    Console.WriteLine("\n\n");
-                    secondFighter.ShowCurrentHealth();
-                    secondFighter.UseAbility();
-                    secondFighter.TakeDamage(firstFighter.Damage);
-                    secondFighter.ShowRecievedDamage(firstFighter.Damage);
                     Console.WriteLine();
 
-                    if (firstFighter.CurrentHealth <= 0 && secondFighter.CurrentHealth <= 0)
-                        Console.WriteLine("Ничья");
-                    else if (firstFighter.CurrentHealth <= 0 && secondFighter.CurrentHealth > 0)
-                        Console.WriteLine($"Победа за {secondFighter.Name}ом");
-                    else if (firstFighter.CurrentHealth > 0 && secondFighter.CurrentHealth <= 0)
-                        Console.WriteLine($"Победа за {firstFighter.Name}ом");
+                    DrawBorder();
+                    secondFighter.ShowCurrentHealth();
+                    secondFighter.UseAbility();                    
+                    DrawBorder();
 
-                    Console.ReadKey();
+                    
+                    Console.WriteLine("\nНажмите любую клавишу чтобы сделать удар...");
+                    Console.ReadKey();                
+                    firstFighter.TakeDamage(secondFighter.Damage);
+                    secondFighter.TakeDamage(firstFighter.Damage);
+
                 }
+
+                    DetermineWinner(firstFighter, secondFighter);
             }
             else
             {
                 Console.WriteLine("Двух одиннаковых бойцов выбрать нельзя");
             }
 
-
+            Console.CursorVisible = true;
             Console.ReadKey();
             Console.Clear();
+        }
+
+        private void DrawBorder()
+        {
+            Console.WriteLine($"{new string('-', 20)}");
+        }
+
+        private void DetermineWinner(Fighter firstFighter, Fighter secondFighter)
+        {
+            Console.Clear();
+            DrawBorder();
+            firstFighter.ShowCurrentHealth();
+            DrawBorder();
+            Console.WriteLine();
+            DrawBorder();
+            secondFighter.ShowCurrentHealth();
+            DrawBorder();
+            Console.WriteLine();
+
+            if (firstFighter.CurrentHealth <= 0 && secondFighter.CurrentHealth <= 0)
+                Console.WriteLine("Ничья");
+            else if (firstFighter.CurrentHealth <= 0 && secondFighter.CurrentHealth > 0)
+                Console.WriteLine($"Победа за {secondFighter.Name}ом");
+            else if (firstFighter.CurrentHealth > 0 && secondFighter.CurrentHealth <= 0)
+                Console.WriteLine($"Победа за {firstFighter.Name}ом");
         }
 
         private Fighter ChooseFirstFighter()
@@ -147,12 +173,12 @@ namespace ex46
 
         public void ShowCurrentHealth()
         {
-            Console.WriteLine($"{Name}\nЗдоровье: {CurrentHealth}");
-        }
-
-        public void ShowRecievedDamage(int damage)
-        {
-            Console.WriteLine($"Полученный урон - {damage}");
+            ConsoleColor defaultColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine($"{Name}");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Здоровье: {CurrentHealth}");
+            Console.ForegroundColor= defaultColor;
         }
 
         public virtual void UseAbility() { }
@@ -172,9 +198,12 @@ namespace ex46
 
         public void StealLife()
         {
+            ConsoleColor defaultColor = Console.ForegroundColor;
             _lifesteal = _random.Next(10, 30);
             CurrentHealth += _lifesteal;
-            Console.WriteLine($"Здоровья получено: {_lifesteal}");
+            Console.ForegroundColor = ConsoleColor.DarkMagenta;
+            Console.WriteLine($"Кража здоровья");
+            Console.ForegroundColor = defaultColor;
         }
 
         public override void ShowStats()
@@ -191,23 +220,28 @@ namespace ex46
 
     class Rogue : Fighter
     {
+        private int _initialDamage;
+
         public Rogue(string name, int health, int damage) : base(name, health, damage)
         {
-            InitialDamage = Damage;
+            _initialDamage = Damage;
         }
-
-        public int InitialDamage { get; private set; }
 
         public void DealCriticalDamage()
         {
-            int initialDamage = InitialDamage;
-            Damage = initialDamage;
             Random random = new Random();
+            Damage = _initialDamage;
             int chance = random.Next(5); //20%
             int critDamage = Damage * 3;
 
             if (chance == 0)
+            {
+                ConsoleColor defaultColor = Console.ForegroundColor;
                 Damage = critDamage;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Критический урон!");
+                Console.ForegroundColor = defaultColor;
+            }
         }
 
         public override void ShowStats()
@@ -224,12 +258,12 @@ namespace ex46
 
     class Warrior : Fighter
     {
-        public Warrior(string name, int health, int damage, int armor) : base(name, health, damage)
-        {
-            Armor = armor;
-        }
+        private int _armor;
 
-        public int Armor { get; private set; }
+        public Warrior(string name, int health, int damage) : base(name, health, damage)
+        {
+
+        }
 
         public void BlockDamage()
         {
