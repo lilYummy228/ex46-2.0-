@@ -20,10 +20,10 @@ namespace ex46
 
         public Arena()
         {
-            Random random = new Random();
             int minArmorValue = 10;
             int maxArmorValue = 25;
             int druidBeastForms = 4;
+            Random random = new Random();
             _fighters = new List<Fighter>
             {
                 new Warlock("Чернокнижник", 1000, 100),
@@ -63,8 +63,10 @@ namespace ex46
                 {
                     Console.Clear();
                     firstFighter.ShowCurrentHealth();
+
                     Console.WriteLine("\nПротив\n");
                     secondFighter.ShowCurrentHealth();
+
                     Console.WriteLine("\nНажмите любую клавишу чтобы начать битву...");
                     Console.ReadKey();
 
@@ -86,6 +88,7 @@ namespace ex46
 
                         Console.WriteLine("\nНажмите любую клавишу чтобы сделать удар...");
                         Console.ReadKey();
+
                         firstFighter.TakeDamage(secondFighter.Damage);
                         secondFighter.TakeDamage(firstFighter.Damage);
                     }
@@ -234,7 +237,7 @@ namespace ex46
         {
             Random random = new Random();
             Damage = _initialDamage;
-            int chance = random.Next(_critDamageChance); //25%
+            int chance = random.Next(_critDamageChance);
             int critDamage = Damage * 2;
 
             if (chance == 0)
@@ -461,7 +464,7 @@ namespace ex46
         {
             Damage = _initialDamage;
             Random random = new Random();
-            int chance = random.Next(_getSpontaneousEffectChance); //25%
+            int chance = random.Next(_getSpontaneousEffectChance);
             ConsoleColor defaultColor = Console.ForegroundColor;
 
             if (chance == 0)
