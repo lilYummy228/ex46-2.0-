@@ -9,8 +9,12 @@ namespace ex46
         {
             Arena arena = new Arena();
 
-            arena.ShowAllFighters();
-            arena.Fight();
+            while (true)
+            {
+                arena.ShowAllFighters();
+                arena.Fight();
+
+            }
         }
     }
 
@@ -24,6 +28,7 @@ namespace ex46
             int maxArmorValue = 25;
             int druidBeastForms = 4;
             Random random = new Random();
+
             _fighters = new List<Fighter>
             {
                 new Warlock("Чернокнижник", 1000, 100),
@@ -36,6 +41,16 @@ namespace ex46
                 new Druid("Друид", 1000, 100, random.Next(druidBeastForms)),
                 new Priest("Жрец", 1000, 100)
             };
+        }
+
+        public interface IClonable
+        {
+            object Clone();
+        }
+
+        public object Clone(Fighter fighter)
+        {
+            return new Fighter(fighter.Name, fighter.MaxHealth, fighter.Damage);
         }
 
         public void ShowAllFighters()
@@ -141,9 +156,18 @@ namespace ex46
 
             if (int.TryParse(Console.ReadLine(), out int fighterIndex))
             {
-                Fighter fighter = _fighters[fighterIndex - 1];
-                Console.WriteLine($"Выбран боец: {_fighters[fighterIndex - 1].Name}");
-                return fighter;
+                if (fighterIndex <= _fighters.Count && fighterIndex > 0)
+                {
+                    Fighter fighter = _fighters[fighterIndex - 1];
+                    Clone(fighter);
+                    Console.WriteLine($"Выбран боец: {_fighters[fighterIndex - 1].Name}");
+                    return fighter;
+                }
+                else
+                {
+                    Console.WriteLine("Такого бойца нет");
+                    return null;
+                }
             }
             else
             {
