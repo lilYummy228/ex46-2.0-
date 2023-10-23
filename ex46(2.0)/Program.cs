@@ -7,11 +7,10 @@ namespace ex46
     {
         static void Main(string[] args)
         {
+            Arena arena = new Arena();
 
             while (true)
             {
-                Arena arena = new Arena();
-
                 arena.ShowAllFighters();
                 arena.Fight();
 
@@ -137,6 +136,16 @@ namespace ex46
 
         private Fighter ChooseFighter()
         {
+            const int CommandChooseWarlock = 1;
+            const int CommandChooseRogue = 2;
+            const int CommandChooseWarrior = 3;
+            const int CommandChoosePaladin = 4;
+            const int CommandChooseMage = 5;
+            const int CommandChooseHunter = 6;
+            const int CommandChooseShaman = 7;
+            const int CommandChooseDruid = 8;
+            const int CommandChoosePriest = 9;
+
             Console.Write("Выберете бойца: ");
 
             if (int.TryParse(Console.ReadLine(), out int fighterIndex))
@@ -144,7 +153,45 @@ namespace ex46
                 if (fighterIndex <= _fighters.Count && fighterIndex > 0)
                 {
                     Fighter fighter = new Fighter("", 0, 0);
-                    fighter = _fighters[fighterIndex - 1];
+
+                    switch (fighterIndex)
+                    {
+                        case CommandChooseWarlock:
+                            fighter = CreateWarlock();
+                            break;
+
+                        case CommandChooseRogue:
+                            fighter = CreateRogue();
+                            break;
+
+                        case CommandChooseWarrior:
+                            fighter = CreateWarrior();
+                            break;
+
+                        case CommandChoosePaladin:
+                            fighter = CreatePaladin();
+                            break;
+
+                        case CommandChooseMage:
+                            fighter = CreateMage();
+                            break;
+
+                        case CommandChooseHunter:
+                            fighter = CreateHunter();
+                            break;
+
+                        case CommandChooseShaman:
+                            fighter = CreateShaman();
+                            break;
+
+                        case CommandChooseDruid:
+                            fighter = CreateDruid();
+                            break;
+
+                        case CommandChoosePriest:
+                            fighter = CreatePriest();
+                            break;
+                    }
 
                     return fighter;
                 }
