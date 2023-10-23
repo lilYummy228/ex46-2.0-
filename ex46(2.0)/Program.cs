@@ -7,11 +7,10 @@ namespace ex46
     {
         static void Main(string[] args)
         {
+            Arena arena = new Arena();
 
             while (true)
             {
-                Arena arena = new Arena();
-
                 arena.ShowAllFighters();
                 arena.Fight();
 
@@ -143,7 +142,47 @@ namespace ex46
             {
                 if (fighterIndex <= _fighters.Count && fighterIndex > 0)
                 {
-                    Fighter fighter = _fighters[fighterIndex - 1];
+                    Fighter fighter = new Fighter("", 0, 0);
+
+                    switch (fighterIndex)
+                    {
+                        case 1:
+                            fighter = CreateWarlock();
+                            break;
+
+                        case 2:
+                            fighter = CreateRogue();
+                            break;
+
+                        case 3:
+                            fighter = CreateWarrior();
+                            break;
+
+                        case 4:
+                            fighter = CreatePaladin();
+                            break;
+
+                        case 5:
+                            fighter = CreateMage();
+                            break;
+
+                        case 6:
+                            fighter = CreateHunter();
+                            break;
+
+                        case 7:
+                            fighter = CreateShaman();
+                            break;
+
+                        case 8:
+                            fighter = CreateDruid();
+                            break;
+
+                        case 9:
+                            fighter = CreatePriest();
+                            break;
+                    }
+
                     return fighter;
                 }
                 else
