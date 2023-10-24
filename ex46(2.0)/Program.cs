@@ -130,19 +130,10 @@ namespace ex46
         {
             int lastFighter = 1;
 
-            if (GetFightersCount() <= lastFighter)
-            {
+            if (_fighters.Count <= lastFighter)
                 return false;
-            }
             else
-            {
                 return true;
-            }
-        }
-
-        private int GetFightersCount()
-        {
-            return _fighters.Count;
         }
 
         private void ShowAllFighters()
