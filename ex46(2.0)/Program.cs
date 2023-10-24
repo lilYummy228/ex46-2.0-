@@ -333,9 +333,7 @@ namespace ex46
         public override void UseAbility(Fighter enemyFighter)
         {
             StealLife();
-        }
-
-        
+        }        
     }
 
     class Rogue : Fighter
