@@ -12,12 +12,11 @@ namespace ex46
 
             while (isOpen)
             {
-                arena.Fight();
-
-                if (arena.GetFightersCount() < 2)
-                {
-                    isOpen = false;
-                }
+                Fighter firstFighter = arena.ChooseFighters();
+                Fighter secondFighter = arena.ChooseFighters();
+                Fighter winner = arena.Fight(firstFighter, secondFighter);
+                arena.DetermineWinner(winner);
+                isOpen = arena.IsEmpty();
 
                 Console.ReadKey();
                 Console.Clear();
@@ -45,7 +44,110 @@ namespace ex46
             };
         }
 
-        public void ShowAllFighters()
+        public Fighter ChooseFighters()
+        {
+            bool isChosen = false;
+
+            while (isChosen == false)
+            {
+                ShowAllFighters();
+                isChosen = TryToGetFighter(out Fighter fighter);
+
+                if (isChosen)
+                {
+                    _fighters.Remove(fighter);
+                    isChosen = true;
+                    return fighter;
+                }
+                else
+                {
+                    Console.WriteLine("Такого бойца нет...");
+                    Console.ReadKey();
+                }
+            }
+
+            return null;
+        }
+
+        public Fighter Fight(Fighter firstFighter, Fighter secondFighter)
+        {
+            Console.CursorVisible = false;
+            Console.Clear();
+
+            firstFighter.ShowCurrentHealth();
+
+            Console.WriteLine("\nПротив\n");
+
+            secondFighter.ShowCurrentHealth();
+
+            Console.WriteLine("\nНажмите любую клавишу чтобы начать битву...");
+            Console.ReadKey();
+
+            while (firstFighter.CurrentHealth > 0 && secondFighter.CurrentHealth > 0)
+            {
+                Console.Clear();
+
+                firstFighter.ShowCurrentHealth();
+                firstFighter.UseAbility(secondFighter);
+                DrawBorder();
+
+                Console.WriteLine("\nПротив\n");
+
+                DrawBorder();
+                secondFighter.ShowCurrentHealth();
+                secondFighter.UseAbility(firstFighter);
+
+                Console.WriteLine("\nНажмите любую клавишу чтобы сделать удар...");
+                Console.ReadKey();
+
+                firstFighter.TakeDamage(secondFighter.Damage);
+                secondFighter.TakeDamage(firstFighter.Damage);
+            }
+
+            Fighter winner = FindSurvivor(firstFighter, secondFighter);
+            return winner;
+        }       
+
+        public void DetermineWinner(Fighter winner)
+        {
+            Console.Clear();
+
+            if (winner != null)
+            {
+                DrawBorder();
+                winner.ShowCurrentHealth();
+                DrawBorder();
+
+                Console.WriteLine($"Победа за {winner.Name}ом");
+            }
+            else
+            {
+                Console.WriteLine("Оба бойца погибли...");
+            }
+
+            Console.CursorVisible = true;
+        }
+
+        public bool IsEmpty()
+        {
+            int lastFighter = 1;
+
+            if (GetFightersCount() <= lastFighter)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        private int GetFightersCount()
+        {
+            return _fighters.Count;
+        }
+
+        private void ShowAllFighters()
         {
             Console.Clear();
             int index = 1;
@@ -58,106 +160,35 @@ namespace ex46
             }
         }
 
-        public int GetFightersCount()
-        {
-            return _fighters.Count;
-        }
-
-        public void Fight()
-        {
-            Console.CursorVisible = false;
-            ShowAllFighters();
-            Fighter firstFighter = ChooseFighter();
-            ShowAllFighters();
-            Fighter secondFighter = ChooseFighter();
-
-            if (firstFighter != null && secondFighter != null)
-            {
-                if (firstFighter != secondFighter)
-                {
-                    Console.Clear();
-                    firstFighter.ShowCurrentHealth();
-
-                    Console.WriteLine("\nПротив\n");
-                    secondFighter.ShowCurrentHealth();
-
-                    Console.WriteLine("\nНажмите любую клавишу чтобы начать битву...");
-                    Console.ReadKey();
-
-                    while (firstFighter.CurrentHealth > 0 && secondFighter.CurrentHealth > 0)
-                    {
-                        Console.Clear();
-
-                        DrawBorder();
-                        firstFighter.ShowCurrentHealth();
-                        firstFighter.UseAbility(secondFighter);
-                        DrawBorder();
-
-                        Console.WriteLine();
-
-                        DrawBorder();
-                        secondFighter.ShowCurrentHealth();
-                        secondFighter.UseAbility(firstFighter);
-                        DrawBorder();
-
-                        Console.WriteLine("\nНажмите любую клавишу чтобы сделать удар...");
-                        Console.ReadKey();
-
-                        firstFighter.TakeDamage(secondFighter.Damage);
-                        secondFighter.TakeDamage(firstFighter.Damage);
-                    }
-
-                    DetermineWinner(firstFighter, secondFighter);
-                }
-                else
-                {
-                    Console.WriteLine("Двух одиннаковых бойцов выбрать нельзя");
-                }
-
-                Console.CursorVisible = true;
-            }
-            else
-            {
-                Console.WriteLine("Неккоректный ввод...");
-            }
-        }
-
         private void DrawBorder()
         {
             Console.WriteLine($"{new string('-', 20)}");
         }
 
-        private void DetermineWinner(Fighter firstFighter, Fighter secondFighter)
+        private Fighter FindSurvivor(Fighter firstFighter, Fighter secondFighter)
         {
-            Console.Clear();
-
-            DrawBorder();
-            firstFighter.ShowCurrentHealth();
-            DrawBorder();
-
-            Console.WriteLine();
-
-            DrawBorder();
-            secondFighter.ShowCurrentHealth();
-            DrawBorder();
-
-            Console.WriteLine();
-
             if (firstFighter.CurrentHealth <= 0 && secondFighter.CurrentHealth <= 0)
             {
                 Console.WriteLine("Ничья");
+                return null;
             }
             else if (firstFighter.CurrentHealth <= 0 && secondFighter.CurrentHealth > 0)
             {
                 Console.WriteLine($"Победа за {secondFighter.Name}ом");
+                return secondFighter;
             }
             else if (firstFighter.CurrentHealth > 0 && secondFighter.CurrentHealth <= 0)
             {
                 Console.WriteLine($"Победа за {firstFighter.Name}ом");
+                return firstFighter;
+            }
+            else
+            {
+                return null;
             }
         }
 
-        private Fighter ChooseFighter()
+        private bool TryToGetFighter(out Fighter fighter)
         {
             Console.Write("Выберете бойца: ");
 
@@ -165,19 +196,19 @@ namespace ex46
             {
                 if (fighterIndex <= _fighters.Count && fighterIndex > 0)
                 {
-                    Fighter fighter = _fighters[fighterIndex - 1];
-                    _fighters.Remove(fighter);
-                    return fighter;
+                    fighter = _fighters[fighterIndex - 1];
+                    return true;
                 }
                 else
                 {
-                    Console.WriteLine("Такого бойца нет");
-                    return null;
+                    fighter = null;
+                    return false;
                 }
             }
             else
             {
-                return null;
+                fighter = null;
+                return false;
             }
         }
 
@@ -308,7 +339,7 @@ namespace ex46
         private Random _random = new Random();
         private int _lifesteal;
         private int _minLifesteal = 10;
-        private int _maxLifesteal = 41;
+        private int _maxLifesteal = 31;
 
         public Warlock(string name, int health, int damage) : base(name, health, damage) { }
 
@@ -331,7 +362,7 @@ namespace ex46
         public override void UseAbility(Fighter enemyFighter)
         {
             StealLife();
-        }        
+        }
     }
 
     class Rogue : Fighter
@@ -349,8 +380,9 @@ namespace ex46
         {
             Random random = new Random();
             Damage = _initialDamage;
+            int critDamageMultiplier = 2;
             int chance = random.Next(_critDamageChance);
-            int critDamage = Damage * 2;
+            int critDamage = Damage * critDamageMultiplier;
 
             if (chance == 0)
             {
@@ -504,8 +536,9 @@ namespace ex46
         public void SummonWolf()
         {
             Damage = _initialDamage;
+            int halfHealth = MaxHealth / 2;
 
-            if (CurrentHealth <= MaxHealth / 2)
+            if (CurrentHealth <= halfHealth)
             {
                 ConsoleColor defaultColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -579,29 +612,33 @@ namespace ex46
         {
             Damage = _initialDamage;
             Random random = new Random();
-            int chance = random.Next(_getSpontaneousEffectChance);
             ConsoleColor defaultColor = Console.ForegroundColor;
+            int chance = random.Next(_getSpontaneousEffectChance);
+            int windSpell = 0;
+            int fireSpell = 1;
+            int waterSpell = 2;
+            int floraSpell = 3;
 
-            if (chance == 0)
+            if (chance == windSpell)
             {
                 Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine("Попутный ветер");
                 CurrentHealth += enemyFighter.Damage;
             }
-            else if (chance == 1)
+            else if (chance == fireSpell)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Жар солнца");
                 Damage += random.Next(_minFireDamage, _maxFireDamage);
                 CurrentHealth -= Damage;
             }
-            else if (chance == 2)
+            else if (chance == waterSpell)
             {
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
                 Console.WriteLine("Целительный дождь");
                 CurrentHealth += random.Next(_minRainHeal, _maxRainHeal);
             }
-            else if (chance == 3)
+            else if (chance == floraSpell)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
                 Console.WriteLine("Защита флоры");
@@ -648,17 +685,22 @@ namespace ex46
         public void TurnIntoBeast(Fighter enemyFighter)
         {
             ConsoleColor defaultColor = Console.ForegroundColor;
+            int healthForTransformations = MaxHealth / 10 * 7;
+            int bearForm = 0;
+            int owlForm = 1;
+            int foxForm = 2;
+            int wolfForm = 3;
 
-            if (_isTurningInto == false && CurrentHealth <= MaxHealth / 10 * 7)
+            if (_isTurningInto == false && CurrentHealth <= healthForTransformations)
             {
-                if (_beastForms == 0)
+                if (_beastForms == bearForm)
                 {
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
                     Console.WriteLine("Форма медведя");
                     CurrentHealth = _bearFormHealth;
                     _isTurningInto = true;
                 }
-                else if (_beastForms == 1)
+                else if (_beastForms == owlForm)
                 {
                     Console.ForegroundColor = ConsoleColor.Blue;
                     Console.WriteLine("Форма совы");
@@ -666,7 +708,7 @@ namespace ex46
                     Damage += enemyFighter.Damage;
                     _isTurningInto = true;
                 }
-                else if (_beastForms == 2)
+                else if (_beastForms == foxForm)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Форма лисы");
@@ -674,7 +716,7 @@ namespace ex46
                     CurrentHealth += enemyFighter.CurrentHealth;
                     _isTurningInto = true;
                 }
-                else if (_beastForms == 3)
+                else if (_beastForms == wolfForm)
                 {
                     Damage = _initialDamage;
                     Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -722,13 +764,15 @@ namespace ex46
 
         public void RiseAgain()
         {
+            int halfHealth = MaxHealth / 2;
+
             if (_isRised == false)
             {
                 if (CurrentHealth <= _healthThreshold)
                 {
                     ConsoleColor defaultColor = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Cyan;
-                    CurrentHealth += MaxHealth / 2;
+                    CurrentHealth += halfHealth;
                     Console.WriteLine("Возрождение");
                     _isRised = true;
                     Console.ForegroundColor = defaultColor;
