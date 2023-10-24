@@ -56,7 +56,6 @@ namespace ex46
                 if (isChosen)
                 {
                     _fighters.Remove(fighter);
-                    isChosen = true;
                     return fighter;
                 }
                 else
@@ -114,7 +113,6 @@ namespace ex46
 
             if (winner != null)
             {
-                DrawBorder();
                 winner.ShowCurrentHealth();
                 DrawBorder();
 
