@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ex46
 {
@@ -8,11 +9,17 @@ namespace ex46
         static void Main(string[] args)
         {
             Arena arena = new Arena();
+            bool isOpen = true;
 
-            while (true)
+            while (isOpen)
             {
-                arena.ShowAllFighters();
+
                 arena.Fight();
+
+                if (arena.GetFightersCount() < 2)
+                {
+                    isOpen = false;
+                }
 
                 Console.ReadKey();
                 Console.Clear();
@@ -42,6 +49,7 @@ namespace ex46
 
         public void ShowAllFighters()
         {
+            Console.Clear();
             int index = 1;
 
             foreach (Fighter fighter in _fighters)
@@ -52,10 +60,17 @@ namespace ex46
             }
         }
 
+        public int GetFightersCount()
+        {
+            return _fighters.Count;
+        }
+
         public void Fight()
         {
             Console.CursorVisible = false;
+            ShowAllFighters();
             Fighter firstFighter = ChooseFighter();
+            ShowAllFighters();
             Fighter secondFighter = ChooseFighter();
 
             if (firstFighter != null && secondFighter != null)
@@ -117,82 +132,43 @@ namespace ex46
         private void DetermineWinner(Fighter firstFighter, Fighter secondFighter)
         {
             Console.Clear();
+
             DrawBorder();
             firstFighter.ShowCurrentHealth();
             DrawBorder();
+
             Console.WriteLine();
+
             DrawBorder();
             secondFighter.ShowCurrentHealth();
             DrawBorder();
+
             Console.WriteLine();
 
             if (firstFighter.CurrentHealth <= 0 && secondFighter.CurrentHealth <= 0)
+            {
                 Console.WriteLine("Ничья");
+            }
             else if (firstFighter.CurrentHealth <= 0 && secondFighter.CurrentHealth > 0)
+            {
                 Console.WriteLine($"Победа за {secondFighter.Name}ом");
+            }
             else if (firstFighter.CurrentHealth > 0 && secondFighter.CurrentHealth <= 0)
+            {
                 Console.WriteLine($"Победа за {firstFighter.Name}ом");
+            }
         }
 
         private Fighter ChooseFighter()
         {
-            const int CommandChooseWarlock = 1;
-            const int CommandChooseRogue = 2;
-            const int CommandChooseWarrior = 3;
-            const int CommandChoosePaladin = 4;
-            const int CommandChooseMage = 5;
-            const int CommandChooseHunter = 6;
-            const int CommandChooseShaman = 7;
-            const int CommandChooseDruid = 8;
-            const int CommandChoosePriest = 9;
-
             Console.Write("Выберете бойца: ");
 
             if (int.TryParse(Console.ReadLine(), out int fighterIndex))
             {
                 if (fighterIndex <= _fighters.Count && fighterIndex > 0)
                 {
-                    Fighter fighter = new Fighter("", 0, 0);
-
-                    switch (fighterIndex)
-                    {
-                        case CommandChooseWarlock:
-                            fighter = CreateWarlock();
-                            break;
-
-                        case CommandChooseRogue:
-                            fighter = CreateRogue();
-                            break;
-
-                        case CommandChooseWarrior:
-                            fighter = CreateWarrior();
-                            break;
-
-                        case CommandChoosePaladin:
-                            fighter = CreatePaladin();
-                            break;
-
-                        case CommandChooseMage:
-                            fighter = CreateMage();
-                            break;
-
-                        case CommandChooseHunter:
-                            fighter = CreateHunter();
-                            break;
-
-                        case CommandChooseShaman:
-                            fighter = CreateShaman();
-                            break;
-
-                        case CommandChooseDruid:
-                            fighter = CreateDruid();
-                            break;
-
-                        case CommandChoosePriest:
-                            fighter = CreatePriest();
-                            break;
-                    }
-
+                    Fighter fighter = _fighters[fighterIndex - 1];
+                    _fighters.Remove(fighter);
                     return fighter;
                 }
                 else
@@ -212,8 +188,7 @@ namespace ex46
             string name = "Чернокнижник";
             int health = 1000;
             int damage = 100;
-            Fighter fighter = new Warlock(name, health, damage);
-            return fighter;
+            return new Warlock(name, health, damage);
         }
 
         private Fighter CreateRogue()
@@ -359,6 +334,8 @@ namespace ex46
         {
             StealLife();
         }
+
+        
     }
 
     class Rogue : Fighter
