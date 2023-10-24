@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using static System.Net.Mime.MediaTypeNames;
+using System.Xml.Linq;
 
 namespace ex46
 {
@@ -14,8 +16,8 @@ namespace ex46
             {
                 Fighter firstFighter = arena.ChooseFighters();
                 Fighter secondFighter = arena.ChooseFighters();
-                Fighter winner = arena.Fight(firstFighter, secondFighter);
-                arena.DetermineWinner(winner);
+                arena.Fight(firstFighter, secondFighter);
+                arena.DetermineWinner(firstFighter, secondFighter);
                 isOpen = arena.IsEmpty();
 
                 Console.ReadKey();
@@ -32,16 +34,16 @@ namespace ex46
         {
             _fighters = new List<Fighter>
             {
-                CreateWarlock(),
-                CreateRogue(),
-                CreateWarrior(),
-                CreatePaladin(),
-                CreateMage(),
-                CreateHunter(),
-                CreateShaman(),
-                CreateDruid(),
-                CreatePriest()
-            };
+                new Warlock("Чернокнижник", 1000, 100),
+                new Rogue("Разбойник", 1000, 100),
+                new Warrior("Воин", 1000, 100),
+                new Paladin("Паладин", 1000, 100),
+                new Mage("Маг", 1000, 100),
+                new Hunter("Охотник", 1000, 100),
+                new Shaman("Шаман", 1000, 100),
+                new Druid("Друид", 1000, 100),
+                new Priest("Жрец", 1000, 100)
+        };
         }
 
         public Fighter ChooseFighters()
@@ -68,8 +70,9 @@ namespace ex46
             return null;
         }
 
-        public Fighter Fight(Fighter firstFighter, Fighter secondFighter)
+        public void Fight(Fighter firstFighter, Fighter secondFighter)
         {
+            int deathThreshold = 0;
             Console.CursorVisible = false;
             Console.Clear();
 
@@ -82,7 +85,7 @@ namespace ex46
             Console.WriteLine("\nНажмите любую клавишу чтобы начать битву...");
             Console.ReadKey();
 
-            while (firstFighter.CurrentHealth > 0 && secondFighter.CurrentHealth > 0)
+            while (firstFighter.CurrentHealth > deathThreshold && secondFighter.CurrentHealth > deathThreshold)
             {
                 Console.Clear();
 
@@ -102,14 +105,12 @@ namespace ex46
                 firstFighter.TakeDamage(secondFighter.Damage);
                 secondFighter.TakeDamage(firstFighter.Damage);
             }
+        }
 
-            Fighter winner = FindSurvivor(firstFighter, secondFighter);
-            return winner;
-        }       
-
-        public void DetermineWinner(Fighter winner)
+        public void DetermineWinner(Fighter firstFighter, Fighter secondFighter)
         {
             Console.Clear();
+            Fighter winner = FindSurvivor(firstFighter, secondFighter);
 
             if (winner != null)
             {
@@ -200,89 +201,6 @@ namespace ex46
                 return false;
             }
         }
-
-        private Fighter CreateWarlock()
-        {
-            string name = "Чернокнижник";
-            int health = 1000;
-            int damage = 100;
-            return new Warlock(name, health, damage);
-        }
-
-        private Fighter CreateRogue()
-        {
-            string name = "Разбойник";
-            int health = 1000;
-            int damage = 100;
-            Fighter fighter = new Rogue(name, health, damage);
-            return fighter;
-        }
-
-        private Fighter CreateWarrior()
-        {
-            Random random = new Random();
-            string name = "Воин";
-            int health = 1000;
-            int damage = 100;
-            int minArmorValue = 10;
-            int maxArmorValue = 25;
-            Fighter fighter = new Warrior(name, health, damage, random.Next(minArmorValue, maxArmorValue));
-            return fighter;
-        }
-
-        private Fighter CreatePaladin()
-        {
-            string name = "Паладин";
-            int health = 1000;
-            int damage = 100;
-            Fighter fighter = new Paladin(name, health, damage);
-            return fighter;
-        }
-
-        private Fighter CreateMage()
-        {
-            string name = "Маг";
-            int health = 1000;
-            int damage = 100;
-            Fighter fighter = new Mage(name, health, damage);
-            return fighter;
-        }
-
-        private Fighter CreateHunter()
-        {
-            string name = "Охотник";
-            int health = 1000;
-            int damage = 100;
-            Fighter fighter = new Hunter(name, health, damage);
-            return fighter;
-        }
-
-        private Fighter CreateShaman()
-        {
-            string name = "Шаман";
-            int health = 1000;
-            int damage = 100;
-            Fighter fighter = new Shaman(name, health, damage);
-            return fighter;
-        }
-
-        private Fighter CreateDruid()
-        {
-            string name = "Друид";
-            int health = 1000;
-            int damage = 100;
-            Fighter fighter = new Druid(name, health, damage);
-            return fighter;
-        }
-
-        private Fighter CreatePriest()
-        {
-            string name = "Жрец";
-            int health = 1000;
-            int damage = 100;
-            Fighter fighter = new Priest(name, health, damage);
-            return fighter;
-        }
     }
 
     class Fighter
@@ -325,20 +243,21 @@ namespace ex46
 
     class Warlock : Fighter
     {
-        private Random _random = new Random();
         private int _lifesteal;
         private int _minLifesteal = 10;
         private int _maxLifesteal = 31;
+        private string _skillName = "Кража здоровья";
 
         public Warlock(string name, int health, int damage) : base(name, health, damage) { }
 
         public void StealLife()
         {
-            ConsoleColor defaultColor = Console.ForegroundColor;
-            _lifesteal = _random.Next(_minLifesteal, _maxLifesteal);
+            Random random = new Random();
+            _lifesteal = random.Next(_minLifesteal, _maxLifesteal);
             CurrentHealth += _lifesteal;
+            ConsoleColor defaultColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
-            Console.WriteLine($"Кража здоровья");
+            Console.WriteLine(_skillName);
             Console.ForegroundColor = defaultColor;
         }
 
@@ -357,28 +276,30 @@ namespace ex46
     class Rogue : Fighter
     {
         private int _initialDamage;
-        private int _critDamageChance;
+        private int _critDamage;
+        private int _critDamageChance = 4;
+        private int _critDamageMultiplier = 2;
+        private int _critDamageValue = 0;
+        private string _skillName = "Критический урон";
 
         public Rogue(string name, int health, int damage) : base(name, health, damage)
         {
             _initialDamage = Damage;
-            _critDamageChance = 4;
+            _critDamage = Damage * _critDamageMultiplier;
         }
 
         public void DealCriticalDamage()
         {
-            Random random = new Random();
             Damage = _initialDamage;
-            int critDamageMultiplier = 2;
+            Random random = new Random();
             int chance = random.Next(_critDamageChance);
-            int critDamage = Damage * critDamageMultiplier;
 
-            if (chance == 0)
+            if (chance == _critDamageValue)
             {
-                Damage = critDamage;
+                Damage = _critDamage;
                 ConsoleColor defaultColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("Критический урон!");
+                Console.WriteLine(_skillName);
                 Console.ForegroundColor = defaultColor;
             }
         }
@@ -398,18 +319,25 @@ namespace ex46
     class Warrior : Fighter
     {
         private int _armor;
+        private int _minArmorValue;
+        private int _maxArmorValue;
+        private string _skillName;
 
-        public Warrior(string name, int health, int damage, int armor) : base(name, health, damage)
+        public Warrior(string name, int health, int damage) : base(name, health, damage)
         {
-            _armor = armor;
+            _minArmorValue = 10;
+            _maxArmorValue = 31;
+            _skillName = "Каменная кожа";
         }
 
         public void BlockDamage()
         {
+            Random random = new Random();
+            _armor = random.Next(_minArmorValue, _maxArmorValue);
+            CurrentHealth += _armor;
             ConsoleColor defaultColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine($"Каменная кожа");
-            CurrentHealth += _armor;
+            Console.WriteLine(_skillName);
             Console.ForegroundColor = defaultColor;
         }
 
@@ -427,27 +355,25 @@ namespace ex46
 
     class Paladin : Fighter
     {
-        private int _healingChance;
-        private int _healingValue;
+        private int _healingChance = 2;
+        private int _healingValue = 25;
+        private int _healingChanceValue = 0;
+        private string _skillName = "Священная милость";
 
-        public Paladin(string name, int health, int damage) : base(name, health, damage)
-        {
-            _healingChance = 2;
-            _healingValue = 25;
-        }
+        public Paladin(string name, int health, int damage) : base(name, health, damage) { }
 
         public void HealYourself()
         {
             Random random = new Random();
             int chance = random.Next(_healingChance);
 
-            if (chance == 0)
+            if (chance == _healingChanceValue)
             {
+                CurrentHealth += _healingValue;
                 ConsoleColor defaultColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Священная милость");
+                Console.WriteLine(_skillName);
                 Console.ForegroundColor = defaultColor;
-                CurrentHealth += _healingValue;
             }
         }
 
@@ -465,15 +391,14 @@ namespace ex46
 
     class Mage : Fighter
     {
-        private int _hitCount;
         private int _initialDamage;
-        private int _periodicDamage;
+        private int _hitCount = 0;
+        private int _periodicDamage = 5;
+        private string _skillName = "Мороз по коже";
 
         public Mage(string name, int health, int damage) : base(name, health, damage)
         {
-            _hitCount = 0;
             _initialDamage = Damage;
-            _periodicDamage = 7;
         }
 
         public void BurnEnemy()
@@ -486,7 +411,7 @@ namespace ex46
 
             ConsoleColor defaultColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.DarkBlue;
-            Console.WriteLine($"Мороз по коже");
+            Console.WriteLine(_skillName);
             Console.ForegroundColor = defaultColor;
         }
 
@@ -505,33 +430,31 @@ namespace ex46
     class Hunter : Fighter
     {
         private int _initialDamage;
-        private string _wolfName;
-        private int _wolfHealth;
+        private string _wolfName = "Волк";
+        private int _wolfHealth = 100;
+        private int _minWolfDamage = 50;
+        private int _maxWolfDamage = 81;
         private int _wolfDamage;
-        private int _minWolfDamage;
-        private int _maxWolfDamage;
+        private int _halfHealth;
+        private string _skillName = "Призыв волка";
 
         public Hunter(string name, int health, int damage) : base(name, health, damage)
         {
             Random random = new Random();
-            _initialDamage = Damage;
-            _wolfHealth = 100;
-            _minWolfDamage = 50;
-            _maxWolfDamage = 81;
             _wolfDamage = random.Next(_minWolfDamage, _maxWolfDamage);
-            _wolfName = "Волк";
+            _halfHealth = MaxHealth / 2;
+            _initialDamage = Damage;
         }
 
         public void SummonWolf()
         {
             Damage = _initialDamage;
-            int halfHealth = MaxHealth / 2;
 
-            if (CurrentHealth <= halfHealth)
+            if (CurrentHealth <= _halfHealth)
             {
                 ConsoleColor defaultColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.WriteLine("Призыв волка");
+                Console.WriteLine(_skillName);
                 Console.ForegroundColor = ConsoleColor.Green;
                 Wolf wolf = new Wolf(_wolfName, _wolfHealth, _wolfDamage);
                 Console.WriteLine();
@@ -573,28 +496,27 @@ namespace ex46
     class Shaman : Fighter
     {
         private int _initialDamage;
-        private int _getSpontaneousEffectChance;
-        private int _minFireDamage;
-        private int _maxFireDamage;
-        private int _minRainHeal;
-        private int _maxRainHeal;
-        private int _minFloraDamage;
-        private int _maxFloraDamage;
-        private int _minFloraHeal;
-        private int _maxFloraHeal;
+        private int _getSpontaneousEffectChance = 4;
+        private int _minFireDamage = 50;
+        private int _maxFireDamage = 101;
+        private int _minRainHeal = 50;
+        private int _maxRainHeal = 76;
+        private int _minFloraDamage = 25;
+        private int _maxFloraDamage = 71;
+        private int _minFloraHeal = 0;
+        private int _maxFloraHeal = 101;
+        private int _windSpellChanceValue = 0;
+        private int _fireSpellChanceValue = 1;
+        private int _waterSpellChanceValue = 2;
+        private int _floraSpellChanceValue = 3;
+        private string _windSkillName = "Попутный ветер";
+        private string _fireSkillName = "Жар солнца";
+        private string _waterSkillName = "Целительный дождь";
+        private string _floraSkillName = "Защита флоры";
 
         public Shaman(string name, int health, int damage) : base(name, health, damage)
         {
             _initialDamage = Damage;
-            _getSpontaneousEffectChance = 4;
-            _minFireDamage = 50;
-            _maxFireDamage = 101;
-            _minRainHeal = 50;
-            _maxRainHeal = 76;
-            _minFloraDamage = 25;
-            _maxFloraDamage = 101;
-            _minFloraHeal = 0;
-            _maxFloraHeal = 101;
         }
 
         public void GetSpontaneousEffect(Fighter enemyFighter)
@@ -603,34 +525,30 @@ namespace ex46
             Random random = new Random();
             ConsoleColor defaultColor = Console.ForegroundColor;
             int chance = random.Next(_getSpontaneousEffectChance);
-            int windSpell = 0;
-            int fireSpell = 1;
-            int waterSpell = 2;
-            int floraSpell = 3;
 
-            if (chance == windSpell)
+            if (chance == _windSpellChanceValue)
             {
                 Console.ForegroundColor = ConsoleColor.Blue;
-                Console.WriteLine("Попутный ветер");
+                Console.WriteLine(_windSkillName);
                 CurrentHealth += enemyFighter.Damage;
             }
-            else if (chance == fireSpell)
+            else if (chance == _fireSpellChanceValue)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Жар солнца");
+                Console.WriteLine(_fireSkillName);
                 Damage += random.Next(_minFireDamage, _maxFireDamage);
                 CurrentHealth -= Damage;
             }
-            else if (chance == waterSpell)
+            else if (chance == _waterSpellChanceValue)
             {
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
-                Console.WriteLine("Целительный дождь");
+                Console.WriteLine(_waterSkillName);
                 CurrentHealth += random.Next(_minRainHeal, _maxRainHeal);
             }
-            else if (chance == floraSpell)
+            else if (chance == _floraSpellChanceValue)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
-                Console.WriteLine("Защита флоры");
+                Console.WriteLine(_floraSkillName);
                 Damage -= random.Next(_minFloraDamage, _maxFloraDamage);
                 CurrentHealth += random.Next(_minFloraHeal, _maxFloraHeal);
             }
@@ -652,64 +570,66 @@ namespace ex46
 
     class Druid : Fighter
     {
-        private int _beastForms;
+        private int _beastForm;
         private int _initialDamage;
-        private bool _isTurningInto;
-        private int _bearFormHealth;
-        private int _owlFormHealth;
-        private int _foxDamage;
-        private int _wolfDamage;
+        private int _maxBeastForms = 4;
+        private bool _isTurningInto = false;
+        private int _healthForTransformations;
+        private int _bearFormHealth = 1000;
+        private int _owlFormHealth = 500;
+        private int _foxDamage = 70;
+        private int _wolfDamage = 20;
+        private int _bearForm = 0;
+        private int _owlForm = 1;
+        private int _foxForm = 2;
+        private int _wolfForm = 3;
+        private string _bearSkillName = "Форма медведя";
+        private string _owlSkillName = "Форма совы";
+        private string _foxSkillName = "Форма лисы";
+        private string _wolfSkillName = "Форма волка";
 
         public Druid(string name, int health, int damage) : base(name, health, damage)
         {
             Random random = new Random();
-            _beastForms = random.Next(4);
+            _beastForm = random.Next(_maxBeastForms);
             _initialDamage = Damage;
-            _bearFormHealth = 1000;
-            _owlFormHealth = 500;
-            _foxDamage = 70;
-            _wolfDamage = 20;
+            _healthForTransformations = MaxHealth / 10 * 7;
         }
 
         public void TurnIntoBeast(Fighter enemyFighter)
         {
             ConsoleColor defaultColor = Console.ForegroundColor;
-            int healthForTransformations = MaxHealth / 10 * 7;
-            int bearForm = 0;
-            int owlForm = 1;
-            int foxForm = 2;
-            int wolfForm = 3;
 
-            if (_isTurningInto == false && CurrentHealth <= healthForTransformations)
+            if (_isTurningInto == false && CurrentHealth <= _healthForTransformations)
             {
-                if (_beastForms == bearForm)
+                if (_beastForm == _bearForm)
                 {
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.WriteLine("Форма медведя");
+                    Console.WriteLine(_bearSkillName);
                     CurrentHealth = _bearFormHealth;
                     _isTurningInto = true;
                 }
-                else if (_beastForms == owlForm)
+                else if (_beastForm == _owlForm)
                 {
                     Console.ForegroundColor = ConsoleColor.Blue;
-                    Console.WriteLine("Форма совы");
+                    Console.WriteLine(_owlSkillName);
                     CurrentHealth = _owlFormHealth;
                     Damage += enemyFighter.Damage;
                     _isTurningInto = true;
                 }
-                else if (_beastForms == foxForm)
+                else if (_beastForm == _foxForm)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Форма лисы");
+                    Console.WriteLine(_foxSkillName);
                     Damage = _foxDamage;
                     CurrentHealth += enemyFighter.CurrentHealth;
                     _isTurningInto = true;
                 }
-                else if (_beastForms == wolfForm)
+                else if (_beastForm == _wolfForm)
                 {
                     Damage = _initialDamage;
                     Console.ForegroundColor = ConsoleColor.DarkGray;
-                    Console.WriteLine("Форма волка");
+                    Console.WriteLine(_wolfSkillName);
                     Damage += _wolfDamage;
 
                     if (CurrentHealth <= MaxHealth / 2)
@@ -740,30 +660,29 @@ namespace ex46
 
     class Priest : Fighter
     {
-        private bool _isRised;
+        private bool _isRised = false;
+        private int _healthThreshold = 100;
+        private int _halfHealth;
         private int _lowerDamage;
-        private int _healthThreshold;
+        private string _skillName = "Воскрешение";
 
         public Priest(string name, int health, int damage) : base(name, health, damage)
         {
-            _isRised = false;
             _lowerDamage = Damage / 2;
-            _healthThreshold = 100;
+            _halfHealth = MaxHealth / 2;
         }
 
         public void RiseAgain()
         {
-            int halfHealth = MaxHealth / 2;
-
             if (_isRised == false)
             {
                 if (CurrentHealth <= _healthThreshold)
                 {
+                    CurrentHealth += _halfHealth;
+                    _isRised = true;
                     ConsoleColor defaultColor = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Cyan;
-                    CurrentHealth += halfHealth;
-                    Console.WriteLine("Возрождение");
-                    _isRised = true;
+                    Console.WriteLine(_skillName);
                     Console.ForegroundColor = defaultColor;
                 }
             }
